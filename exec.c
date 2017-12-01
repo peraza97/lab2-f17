@@ -67,10 +67,9 @@ exec(char *path, char **argv)
 ///////////
 //PART 1 OF THE LAB
 ///////////
-  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE )) == 0)
+  if((sz = allocuvm(pgdir, STACKTOP - PGSIZE, STACKTOP)) == 0)
     goto bad;
-  clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
-  sp = sz;
+  sp = STACKTOP;
 ///////////
 ///////////
 
