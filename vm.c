@@ -318,10 +318,11 @@ copyuvm(pde_t *pgdir, uint sz)
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
-  char *mem;
+  char *mem, *mem1;
 
   if((d = setupkvm()) == 0)
     return 0;
+  
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
@@ -335,6 +336,24 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
+
+  //lab2 addition
+//  uint check = STACKTOP - myproc()->stack_pages * PGSIZE;
+  uint sp = myproc()->tf->esp;
+  
+  for(i = PGROUNDDOWN(sp); i < STACKTOP; i += PGSIZE){
+    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem1 = kalloc()) == 0)
+      goto bad;
+    memmove(mem1, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem1), flags) < 0)
+      goto bad;
+  }		
   return d;
 
 bad:

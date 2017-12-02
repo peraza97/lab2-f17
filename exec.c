@@ -67,7 +67,7 @@ exec(char *path, char **argv)
 ///////////
 //PART 1 OF THE LAB
 ///////////
-  if((sz = allocuvm(pgdir, STACKTOP - PGSIZE, STACKTOP)) == 0)
+  if((allocuvm(pgdir, STACKTOP - PGSIZE, STACKTOP)) == 0)
     goto bad;
   sp = STACKTOP;
 ///////////
@@ -104,6 +104,7 @@ exec(char *path, char **argv)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
+  curproc->stack_pages = 1; //lab2 
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;

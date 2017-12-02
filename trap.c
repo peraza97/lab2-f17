@@ -77,7 +77,22 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
-
+  case T_PGFLT: ;
+    uint addr = rcr2();
+    uint sp = myproc()->tf->esp;
+    //check if the fault occurs from the page right under the bottom of the stack
+    //if so we need to grow the stack
+    if(addr > PGROUNDDOWN(sp) - PGSIZE && addr < PGROUNDDOWN(sp)){
+	pde_t *pgdir;
+	pgdir = 0;
+	if(allocuvm(pgdir ,PGROUNDDOWN(sp) - PGSIZE, PGROUNDDOWN(sp)) == 0){
+		panic("fucked up");
+	}
+   	myproc()->stack_pages +=1;
+	myproc()->tf->esp = PGROUNDDOWN(sp) - PGSIZE;
+    }
+    
+    break;
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
