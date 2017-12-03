@@ -337,6 +337,7 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
       goto bad;
   }
 /////////////////////////
+/////////////////////////
 //lab2 addition
 //  uint check = STACKTOP - myproc()->stack_pages * PGSIZE;
   for(i = PGROUNDDOWN(sp); i < STACKTOP; i += PGSIZE){
@@ -353,6 +354,8 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
       goto bad;
   }		
 //////////////////////////
+//////////////////////////
+
   return d;
 
 bad:
