@@ -318,7 +318,7 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
-  char *mem, *mem1;
+  char *mem;
 
   if((d = setupkvm()) == 0)
     return 0;
@@ -336,8 +336,7 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
-/////////////////////////
-/////////////////////////
+
 //lab2 addition
 //  uint check = STACKTOP - myproc()->stack_pages * PGSIZE;
   for(i = PGROUNDDOWN(sp); i < STACKTOP; i += PGSIZE){
@@ -347,15 +346,12 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
       panic("copyuvm: page not present");
     pa = PTE_ADDR(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem1 = kalloc()) == 0)
+    if((mem = kalloc()) == 0)
       goto bad;
-    memmove(mem1, (char*)P2V(pa), PGSIZE);
-    if(mappages(d, (void*)i, PGSIZE, V2P(mem1), flags) < 0)
+    memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }		
-//////////////////////////
-//////////////////////////
-
   return d;
 
 bad:
