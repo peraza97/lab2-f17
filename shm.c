@@ -30,16 +30,18 @@ void shminit() {
 
 int shm_open(int id, char **pointer) {
     int i=0,found=-1;
+
     struct proc * curproc = myproc();
     uint sz = curproc->sz;
     pte_t * pgdir = curproc->pgdir;
+
     acquire(&(shm_table.lock));
     for(i = 0; i < 64; i++){ 
         uint val_id = shm_table.shm_pages[i].id;
         //if it matches
         if(val_id == id){
             char * fr = shm_table.shm_pages[i].frame;
-            if( mappages(pgdir,(char*)PGROUNDUP(sz),PGSIZE,V2P(fr),PTE_W|PTE_U) < 0){
+            if(mappages(pgdir,(char*)PGROUNDUP(sz),PGSIZE,V2P(fr),PTE_W|PTE_U) < 0){
                 goto release;
             }
             shm_table.shm_pages[i].refcnt++;
@@ -61,7 +63,7 @@ int shm_open(int id, char **pointer) {
         goto release;
     }
     *pointer=(char*)PGROUNDUP(sz);
-    curproc->sz = PGROUNDUP(sz) + PGSIZE;
+    curproc->sz = PGROUNDUP(sz);
     release:
     release(&(shm_table.lock));
 
@@ -83,8 +85,9 @@ int shm_close(int id) {
             else{
                 shm_table.shm_pages[i].id =0;
                 shm_table.shm_pages[i].frame =0;
-                shm_table.shm_pages[i].refcnt =0; 
+                shm_table.shm_pages[i].refcnt =0;
             }
+        break;
         }
     }
     release(&(shm_table.lock));
