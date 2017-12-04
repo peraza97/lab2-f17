@@ -30,46 +30,64 @@ void shminit() {
 
 int shm_open(int id, char **pointer) {
     int i=0,found=-1;
-    acquire(&(shm_table.lock));
     struct proc * curproc = myproc();
-    for(i = 0; i < 64; ++i){
-        uint stored_id = shm_table.shm_pages[i].id;
-        //found the id
-        if(stored_id == id){
+    uint sz = curproc->sz;
+    pte_t * pgdir = curproc->pgdir;
+    acquire(&(shm_table.lock));
+    for(i = 0; i < 64; i++){ 
+        uint val_id = shm_table.shm_pages[i].id;
+        //if it matches
+        if(val_id == id){
             char * fr = shm_table.shm_pages[i].frame;
-            if(mappages(curproc->pgdir,(char*)PGROUNDUP(curproc->sz),PGSIZE,V2P(fr),PTE_W|PTE_U) <0){
-                release(&(shm_table.lock));
-                panic("fucked");
+            if( mappages(pgdir,(char*)PGROUNDUP(sz),PGSIZE,V2P(fr),PTE_W|PTE_U) < 0){
+                goto release;
             }
-            shm_table.shm_pages[i].refcnt +=1;
-            *pointer=(char*)PGROUNDUP(curproc->sz);
-            release(&(shm_table.lock)); 
-            curproc->sz = PGROUNDUP(curproc->sz) + PGSIZE;
-            return 0;
+            shm_table.shm_pages[i].refcnt++;
+            *pointer=(char*)PGROUNDUP(sz);
+            goto release;
         }
-        //store the first available index
-        if(found == -1 &&  stored_id == 0){
+        //set the found variable
+        if(found == -1 && val_id == 0){
             found = i;
-        }
-    }   
-    //it means we have not found it 
+        }    
+    }
+    //not found
     shm_table.shm_pages[found].id = id;
     char * fr = kalloc();
-    shm_table.shm_pages[found].frame = fr; 
-    if(mappages(curproc->pgdir,(char*)PGROUNDUP(curproc->sz),PGSIZE,V2P(fr),PTE_W|PTE_U) < 0){
-        panic("Fucked up");
-    } 
-    shm_table.shm_pages[found].refcnt = 1; 
-    *pointer=(char*)PGROUNDUP(curproc->sz);
-    curproc->sz = PGROUNDUP(curproc->sz) + PGSIZE;
+    memset(fr,0,PGSIZE);
+    shm_table.shm_pages[found].frame = fr;
+    shm_table.shm_pages[found].refcnt = 1;
+    if( mappages(pgdir,(char*)PGROUNDUP(sz),PGSIZE,V2P(fr),PTE_W|PTE_U) < 0){
+        goto release;
+    }
+    *pointer=(char*)PGROUNDUP(sz);
+    curproc->sz = PGROUNDUP(sz) + PGSIZE;
+    release:
     release(&(shm_table.lock));
+
     return 0; //added to remove compiler warning -- you should decide what to return
 }
 
 
 int shm_close(int id) {
-//you write this too!
-
+    //you write this too!
+    int i=0;
+    acquire(&(shm_table.lock));
+    for (i = 0; i< 64; i++) {
+        uint val_id = shm_table.shm_pages[i].id;
+        int ref = shm_table.shm_pages[i].refcnt;
+        if(val_id == id){
+            if(ref > 1){
+                shm_table.shm_pages[i].refcnt -=1;
+            }
+            else{
+                shm_table.shm_pages[i].id =0;
+                shm_table.shm_pages[i].frame =0;
+                shm_table.shm_pages[i].refcnt =0; 
+            }
+        }
+    }
+    release(&(shm_table.lock));
 
 
 return 0; //added to remove compiler warning -- you should decide what to return
