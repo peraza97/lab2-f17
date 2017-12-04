@@ -31,12 +31,12 @@ int
 fetchstr(uint addr, char **pp)
 {
   char *s, *ep;
-  struct proc *curproc = myproc();
+  //struct proc *curproc = myproc();
 
   if(addr >= STACKTOP)
     return -1;
   *pp = (char*)addr;
-  ep = (char*)curproc->sz;
+  ep = (char*)STACKTOP;
   for(s = *pp; s < ep; s++){
     if(*s == 0)
       return s - *pp;
