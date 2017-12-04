@@ -29,45 +29,41 @@ void shminit() {
 }
 
 int shm_open(int id, char **pointer) {
-
-    //you write this
-    int i,found=0;
+    int i=0,found=-1;
     acquire(&(shm_table.lock));
-    for (i = 0; i< 64; i++){
-        uint val = shm_table.shm_pages[i].id;
-        //id is found
-        if(val == id){
-            cprintf("\nID match of %d\n\n",id);
-            uint va = PGROUNDUP(myproc()->sz);
+    struct proc * curproc = myproc();
+    for(i = 0; i < 64; ++i){
+        uint stored_id = shm_table.shm_pages[i].id;
+        //found the id
+        if(stored_id == id){
             char * fr = shm_table.shm_pages[i].frame;
-            mappages(myproc()->pgdir,(char*)va ,PGSIZE,V2P(fr),PTE_W|PTE_U);
-            shm_table.shm_pages[i].refcnt +=1;
-            *pointer=(char *)va;
-            found = 1;
-            break;
-        }
-     }
-    //ID IS NOT FOUND
-    if(found == 0){
-        for(i = 0; i < 64; i++){      
-            uint val = shm_table.shm_pages[i].id;
-            if(val == 0){
-                cprintf("\nNOT FOUND\n\n");
-                shm_table.shm_pages[i].id = id;            
-                shm_table.shm_pages[i].frame = kalloc();
-                shm_table.shm_pages[i].refcnt = 1;
-                uint va = PGROUNDUP(myproc()->sz);
-                char * fr = shm_table.shm_pages[i].frame;
-                mappages(myproc()->pgdir,(char*)va ,PGSIZE,V2P(fr),PTE_W|PTE_U);
-                *pointer=(char*)va;
-                break;
+            if(mappages(curproc->pgdir,(char*)PGROUNDUP(curproc->sz),PGSIZE,V2P(fr),PTE_W|PTE_U) <0){
+                release(&(shm_table.lock));
+                panic("fucked");
             }
+            shm_table.shm_pages[i].refcnt +=1;
+            *pointer=(char*)PGROUNDUP(curproc->sz);
+            release(&(shm_table.lock)); 
+            curproc->sz = PGROUNDUP(curproc->sz) + PGSIZE;
+            return 0;
         }
-    }
-    cprintf("\ngoing to release the lock in shm_open\n");
+        //store the first available index
+        if(found == -1 &&  stored_id == 0){
+            found = i;
+        }
+    }   
+    //it means we have not found it 
+    shm_table.shm_pages[found].id = id;
+    char * fr = kalloc();
+    shm_table.shm_pages[found].frame = fr; 
+    if(mappages(curproc->pgdir,(char*)PGROUNDUP(curproc->sz),PGSIZE,V2P(fr),PTE_W|PTE_U) < 0){
+        panic("Fucked up");
+    } 
+    shm_table.shm_pages[found].refcnt = 1; 
+    *pointer=(char*)PGROUNDUP(curproc->sz);
+    curproc->sz = PGROUNDUP(curproc->sz) + PGSIZE;
     release(&(shm_table.lock));
-    cprintf("\nreleased\n\n");
-return 0; //added to remove compiler warning -- you should decide what to return
+    return 0; //added to remove compiler warning -- you should decide what to return
 }
 
 
