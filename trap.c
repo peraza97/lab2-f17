@@ -80,18 +80,19 @@ trap(struct trapframe *tf)
 
   case T_PGFLT: ;     
     uint addr = rcr2();
-    uint sp = myproc()->tf->esp; 
-    //if so we need to grow the stack
-    if(addr > PGROUNDDOWN(sp) - PGSIZE && addr < PGROUNDDOWN(sp)){
+    struct proc * curproc = myproc();
+    uint rounddown = PGROUNDDOWN(addr);
+    uint stack = STACKTOP - (curproc->stack_pages * PGSIZE);
+    if(rounddown <= stack ){
         pde_t *pgdir;
-    	pgdir = myproc()->pgdir;
-    	if(allocuvm(pgdir ,PGROUNDDOWN(sp) - PGSIZE, PGROUNDDOWN(sp)) == 0){
-    		cprintf("alloc fail\n");
+    	pgdir = curproc->pgdir;
+    	if(allocuvm(pgdir ,rounddown, stack) == 0){
+            cprintf("stack pages:%d\n",curproc->stack_pages);
+       		cprintf("alloc fail\n");
             exit();
     	}
-        cprintf("allocated a page\n");
-    	myproc()->stack_pages +=1;
-//    	myproc()->tf->esp = PGROUNDDOWN(sp);   
+//        cprintf("allocated a page\n");
+    	myproc()->stack_pages +=1;   
     }
     break;
 

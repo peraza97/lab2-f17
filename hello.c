@@ -12,7 +12,7 @@ void print(int n){
     c+=3;
     e+=4;
     d+=1;
-    //printf(1,"hello world = %d \n", n);
+//    printf(1,"hello world = %d \n", n);
     print(a);
     
 }
@@ -21,7 +21,7 @@ int rec(int n){
     if(n == 5000){
         return n;
     }
-   // printf(1,"%d\n",n);
+    printf(1,"%d\n",n);
     return rec(n + 1);
 }
 
