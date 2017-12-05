@@ -63,7 +63,6 @@ exec(char *path, char **argv)
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
   sz = PGROUNDUP(sz);
-
 ///////////
 //PART 1 OF THE LAB
 ///////////

@@ -17,6 +17,18 @@ void print(int n){
     
 }
 
+int rec(int n){
+    if(n == 57000){
+        return n;
+    }
+    if(n == 5700){
+        printf(1,"half\n");
+    }
+    return rec(n + 1);
+
+
+}
+
 int main(int argc, char *argv[]){
     print(1);
     exit();
