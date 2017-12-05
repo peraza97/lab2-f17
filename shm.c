@@ -46,6 +46,7 @@ int shm_open(int id, char **pointer) {
             }
             shm_table.shm_pages[i].refcnt++;
             *pointer=(char*)PGROUNDUP(sz);
+            curproc->sz = PGROUNDUP(sz) + PGSIZE;
             goto release;
         }
         //set the found variable
@@ -63,7 +64,8 @@ int shm_open(int id, char **pointer) {
         goto release;
     }
     *pointer=(char*)PGROUNDUP(sz);
-    curproc->sz = PGROUNDUP(sz);
+    curproc->sz = PGROUNDUP(sz) + PGSIZE;
+    
     release:
     release(&(shm_table.lock));
 
