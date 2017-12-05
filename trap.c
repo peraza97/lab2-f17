@@ -83,13 +83,13 @@ trap(struct trapframe *tf)
     uint sp = myproc()->tf->esp; 
     //if so we need to grow the stack
     if(addr > PGROUNDDOWN(sp) - PGSIZE && addr < PGROUNDDOWN(sp)){
-    	pde_t *pgdir;
+        pde_t *pgdir;
     	pgdir = myproc()->pgdir;
     	if(allocuvm(pgdir ,PGROUNDDOWN(sp) - PGSIZE, PGROUNDDOWN(sp)) == 0){
     		cprintf("alloc fail\n");
             exit();
     	}
-//        cprintf("alloced a page");
+        cprintf("allocated a page\n");
     	myproc()->stack_pages +=1;
 //    	myproc()->tf->esp = PGROUNDDOWN(sp);   
     }

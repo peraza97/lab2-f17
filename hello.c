@@ -18,18 +18,17 @@ void print(int n){
 }
 
 int rec(int n){
-    if(n == 57000){
+    if(n == 5000){
         return n;
     }
-    if(n == 5700){
-        printf(1,"half\n");
-    }
+   // printf(1,"%d\n",n);
     return rec(n + 1);
-
-
 }
 
 int main(int argc, char *argv[]){
     print(1);
+//    int r = rec(1);
+//    printf(1,"\n%d\n",r);
+
     exit();
 }

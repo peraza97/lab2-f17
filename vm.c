@@ -338,8 +338,13 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
   }
 
 //lab2 addition
-//  uint check = STACKTOP - myproc()->stack_pages * PGSIZE;
-  for(i = PGROUNDDOWN(sp); i < STACKTOP; i += PGSIZE){
+  uint num = myproc()->stack_pages;
+  uint check = STACKTOP - num * PGSIZE;
+  //cprintf("\nnum pages:%d\n",num);
+  //cprintf("stacktop: %x\n",STACKTOP);  
+  //cprintf("check:%d\nstack-check:%d\n",check,STACKTOP-check);
+//new for loop
+  for(i = STACKTOP; i > check ; i -= PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
@@ -349,7 +354,7 @@ copyuvm(pde_t *pgdir, uint sz, uint sp)
     if((mem = kalloc()) == 0)
       goto bad;
     memmove(mem, (char*)P2V(pa), PGSIZE);
-    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
+    if(mappages(d, (void*)PGROUNDDOWN(i), PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }		
   return d;
