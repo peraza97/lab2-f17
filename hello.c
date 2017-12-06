@@ -1,6 +1,26 @@
 #include "types.h"
 #include "user.h"
+void test(int x){
 
+if(x>1000){
+exit();
+}
+
+int a = x;
+int b = 1;
+float c = 2;
+char d = 's';
+int e = 3;
+a+=1;
+b+=2;
+c+=3;
+d+=1;
+e+=4;
+
+printf(1,"testy = %d\n",x);
+test(a);
+
+}
 void print(int n){
     int a=n;
     int b =1;
@@ -26,9 +46,9 @@ int rec(int n){
 }
 
 int main(int argc, char *argv[]){
+    //test(1);
     print(1);
-//    int r = rec(1);
-//    printf(1,"\n%d\n",r);
+    //printf(1,"\n%d\n",rec(1));
 
     exit();
 }
