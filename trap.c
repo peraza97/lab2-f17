@@ -79,23 +79,23 @@ trap(struct trapframe *tf)
     break;
 
   case T_PGFLT: ;     
+   
     uint addr = rcr2();
     struct proc * curproc = myproc();
     uint rounddown = PGROUNDDOWN(addr);
     uint stack = STACKTOP - (curproc->stack_pages * PGSIZE);
-    if(rounddown <= stack ){
+    if(rounddown <= stack && rounddown >= stack - PGSIZE ){
         pde_t *pgdir;
-    	pgdir = curproc->pgdir;
-    	if(allocuvm(pgdir ,rounddown, stack) == 0){
+        pgdir = curproc->pgdir;
+        if(allocuvm(pgdir ,rounddown, stack) == 0){
             cprintf("stack pages:%d\n",curproc->stack_pages);
-       		cprintf("alloc fail\n");
             exit();
-    	}
+        }
 //        cprintf("allocated a page\n");
-    	myproc()->stack_pages +=1;   
+        myproc()->stack_pages +=1;   
     }
-    break;
-
+    break;  
+ 
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
